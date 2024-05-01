@@ -1,10 +1,14 @@
-use axum::{extract::State, response::{IntoResponse, Redirect}, Form};
+use axum::{
+    extract::State,
+    response::{AppendHeaders, IntoResponse, Redirect},
+    Form,
+};
 use maud::{html, Markup};
 use serde::Deserialize;
 use sqlx::{query, query_as};
 
 use crate::{
-    schedule::{Event, EventType, Schedule},
+    schedule::{Event, Schedule},
     AppContext,
 };
 
@@ -25,10 +29,11 @@ fn layout(page: impl maud::Render) -> Markup {
 }
 
 pub(crate) async fn render_index(State(context): State<AppContext>) -> Markup {
-    let events = query_as::<_, Event>("SELECT * FROM events WHERE date >= current_date ORDER BY date")
-        .fetch_all(&context.db)
-        .await
-        .expect("select failed");
+    let events =
+        query_as::<_, Event>("SELECT * FROM events WHERE date >= current_date ORDER BY date")
+            .fetch_all(&context.db)
+            .await
+            .expect("select failed");
 
     let schedule = Schedule {
         events: events.into_boxed_slice(),
@@ -41,10 +46,7 @@ pub(crate) async fn render_add() -> Markup {
     layout(html!(
         form method="POST" {
             input type="date" name="date" placeholder="Date";
-            select name="ty" {
-                option selected value="0" {"Exam"}
-                option selected value="1" {"Hand-In"}
-            }
+            input type="text" name="summary" placeholder="Summary";
             button type="submit" { "Submit" }
         }
     ))
@@ -53,16 +55,19 @@ pub(crate) async fn render_add() -> Markup {
 #[derive(Debug, Deserialize)]
 pub(crate) struct AddEventForm {
     date: String,
-    ty: EventType,
+    summary: String,
 }
+
 #[axum::debug_handler]
 pub(crate) async fn handle_post_add(
     State(context): State<AppContext>,
     Form(form): Form<AddEventForm>,
 ) -> impl IntoResponse {
-    query("INSERT INTO events(date, type) VALUES (?1, ?2)")
+    let id = sqlx::types::uuid::Uuid::new_v4();
+    query("INSERT INTO events(id, date, summary) VALUES (?1, ?2, ?3)")
+        .bind(id)
         .bind(form.date)
-        .bind(form.ty)
+        .bind(form.summary)
         .execute(&context.db)
         .await
         .expect("create row failed");
@@ -70,3 +75,32 @@ pub(crate) async fn handle_post_add(
     Redirect::to("/")
 }
 
+#[axum::debug_handler]
+pub(crate) async fn handle_calendar_subscription_get(
+    State(context): State<AppContext>,
+) -> impl IntoResponse {
+    let events = query_as::<_, Event>("SELECT * FROM events")
+        .fetch_all(&context.db)
+        .await
+        .expect("get row failed");
+
+    use icalendar::{Calendar, Component as _, Event as ICalEvent, EventLike as _};
+
+    let mut calendar = Calendar::new();
+    calendar.name("Schedule");
+
+    for event in events {
+        calendar.push(
+            ICalEvent::new()
+                .uid(&event.id.hyphenated().to_string())
+                .summary(&event.summary)
+                .all_day(event.date)
+                .done(),
+        );
+    }
+
+    (
+        AppendHeaders([("Content-Type", "text/calendar")]),
+        calendar.done().to_string(),
+    )
+}

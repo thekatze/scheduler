@@ -10,9 +10,9 @@ axum = { version = "0.7.5", features = ["tracing", "macros", "http2"] }
 maud = { version = "0.26.0", features = ["axum"] }
 tokio = { version = "1.37.0", features = ["full"] }
 chrono = "0.4.38"
-sqlx = { version = "0.7.4", features = ["sqlite", "migrate", "macros", "runtime-tokio", "chrono"] }
+sqlx = { version = "0.7.4", features = ["sqlite", "migrate", "macros", "runtime-tokio", "chrono", "uuid"] }
 serde = { version = "1.0.198", features = ["derive"] }
-serde_repr = "0.1.19"
+icalendar = "0.16.1"
 
 [profile.dev.package."*"]
 opt-level = 3

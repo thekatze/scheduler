@@ -1,5 +1,4 @@
 use maud::{html, Markup};
-use serde_repr::Deserialize_repr;
 
 pub(crate) struct Schedule {
     pub(crate) events: Box<[Event]>,
@@ -7,18 +6,9 @@ pub(crate) struct Schedule {
 
 #[derive(sqlx::FromRow)]
 pub(crate) struct Event {
-    id: i32,
-    date: sqlx::types::chrono::NaiveDate,
-    #[sqlx(rename = "type")]
-    ty: EventType,
-}
-
-#[repr(u8)]
-#[derive(Debug, sqlx::Type, Deserialize_repr)]
-pub(crate) enum EventType {
-    #[serde()]
-    Exam = 0,
-    HandIn = 1,
+    pub id: sqlx::types::uuid::Uuid,
+    pub date: sqlx::types::chrono::NaiveDate,
+    pub summary: String,
 }
 
 impl maud::Render for Schedule {
@@ -35,14 +25,9 @@ impl maud::Render for Schedule {
 
 impl maud::Render for Event {
     fn render(&self) -> Markup {
-        let ty = match self.ty {
-            EventType::Exam => "Exam",
-            EventType::HandIn => "Hand-In",
-        };
-
         html!(
             span {
-                strong { (self.date.to_string()) } (ty)
+                strong { (self.date.to_string()) } "-" (self.summary)
             }
         )
     }

@@ -54,5 +54,6 @@ fn build_app(db: SqlitePool) -> Router {
             "/add",
             get(routes::render_add).post(routes::handle_post_add),
         )
+        .route("/subscription", get(routes::handle_calendar_subscription_get))
         .with_state(context)
 }
