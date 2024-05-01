@@ -1,5 +1,11 @@
 use maud::{html, Markup};
 
+#[derive(sqlx::FromRow)]
+pub(crate) struct Calendar {
+    pub id: sqlx::types::uuid::Uuid,
+    pub(crate) name: String,
+}
+
 pub(crate) struct Schedule {
     pub(crate) events: Box<[Event]>,
 }

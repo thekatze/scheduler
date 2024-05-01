@@ -5,7 +5,7 @@ use sqlx::{migrate, sqlite::SqliteConnectOptions, SqlitePool};
 use tokio::net::TcpListener;
 
 mod routes;
-mod schedule;
+mod calendar;
 
 #[tokio::main]
 async fn main() {
@@ -48,12 +48,21 @@ pub(crate) struct AppContext {
 
 fn build_app(db: SqlitePool) -> Router {
     let context = AppContext { db };
+
     Router::new()
-        .route("/", get(routes::render_index))
+        .route("/", get(routes::index::render))
         .route(
-            "/add",
-            get(routes::render_add).post(routes::handle_post_add),
+            "/new",
+            get(routes::calendar::render_add).post(routes::calendar::handle_add),
         )
-        .route("/subscription", get(routes::handle_calendar_subscription_get))
+        .route("/:calendar", get(routes::calendar::render))
+        .route(
+            "/:calendar/add",
+            get(routes::events::render_add).post(routes::events::handle_add),
+        )
+        .route(
+            "/:calendar/subscription",
+            get(routes::calendar::ical_subscription),
+        )
         .with_state(context)
 }
