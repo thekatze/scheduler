@@ -1,5 +1,6 @@
 use axum::{
     extract::{Path, State},
+    http::StatusCode,
     response::{IntoResponse, Redirect},
     Form,
 };
@@ -31,14 +32,13 @@ pub(crate) async fn handle_add(
     Path(calendar_id): Path<String>,
     State(context): State<AppContext>,
     Form(form): Form<AddEventForm>,
-) -> impl IntoResponse {
-    let calendar_id = Uuid::try_parse(&calendar_id).expect("url path should be valid uuid");
-
+) -> Result<impl IntoResponse, StatusCode> {
+    let calendar_id = Uuid::try_parse(&calendar_id).map_err(|_| StatusCode::BAD_REQUEST)?;
     let calendar = query_as::<_, Calendar>("SELECT * FROM calendars WHERE id = ?1")
         .bind(calendar_id)
         .fetch_one(&context.db)
         .await
-        .expect("calendar should exist");
+        .map_err(|_| StatusCode::NOT_FOUND)?;
 
     let id = sqlx::types::uuid::Uuid::new_v4();
     query("INSERT INTO events(calendar_id, id, date, summary) VALUES (?1, ?2, ?3, ?4)")
@@ -48,7 +48,7 @@ pub(crate) async fn handle_add(
         .bind(form.summary)
         .execute(&context.db)
         .await
-        .expect("create row failed");
+        .map_err(|_| StatusCode::INTERNAL_SERVER_ERROR)?;
 
-    Redirect::to(&format!("/{}", calendar.id))
+    Ok(Redirect::to(&format!("/{}", calendar.id)))
 }
