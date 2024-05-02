@@ -1,2 +1,5 @@
 /target
 events.db
+
+/node_modules
+styles_generated.css

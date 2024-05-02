@@ -1,4 +1,4 @@
-use maud::{html, Markup};
+use maud::{html, Markup, PreEscaped};
 
 pub mod index;
 pub mod calendar;
@@ -12,8 +12,11 @@ fn layout(page: impl maud::Render) -> Markup {
                 meta charset="utf-8";
                 meta name="viewport" content="width=device-width, initial-scale=1.0";
                 title { "schedule" }
+                style {
+                    (PreEscaped(include_str!("./styles_generated.css")))
+                }
             }
-            body {
+            body .font-sans {
                 (page)
             }
         }
