@@ -19,10 +19,15 @@ pub(crate) struct Event {
 
 impl maud::Render for Schedule {
     fn render(&self) -> Markup {
+        let has_events = !self.events.is_empty();
         html!(
-            ol {
-                @for event in self.events.iter() {
-                    li id=(format!("event-{}", event.id)) { (event) }
+            ol .flex .flex-col .gap-4 .p-4 {
+                @if has_events {
+                    @for event in self.events.iter() {
+                        (event)
+                    }
+                } @else {
+                    span .text-indigo-400 {"No upcoming events"}
                 }
             }
         )
@@ -32,8 +37,8 @@ impl maud::Render for Schedule {
 impl maud::Render for Event {
     fn render(&self) -> Markup {
         html!(
-            span {
-                strong { (self.date.to_string()) } "-" (self.summary)
+            li .flex .gap-4 id=(format!("event-{}", self.id)) {
+                strong { (self.date.to_string()) } (self.summary)
             }
         )
     }

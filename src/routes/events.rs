@@ -4,23 +4,10 @@ use axum::{
     response::{IntoResponse, Redirect},
     Form,
 };
-use maud::{html, Markup};
 use serde::Deserialize;
 use sqlx::{query, query_as, types::Uuid};
 
 use crate::{calendar::Calendar, AppContext};
-
-use super::layout;
-
-pub(crate) async fn render_add() -> Markup {
-    layout(html!(
-        form method="POST" {
-            input type="date" name="date" placeholder="Date";
-            input type="text" name="summary" placeholder="Summary";
-            button type="submit" { "Submit" }
-        }
-    ))
-}
 
 #[derive(Debug, Deserialize)]
 pub(crate) struct AddEventForm {

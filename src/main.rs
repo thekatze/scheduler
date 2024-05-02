@@ -1,6 +1,10 @@
 use std::env;
 
-use axum::{http::StatusCode, routing::get, Router};
+use axum::{
+    http::StatusCode,
+    routing::{get, post},
+    Router,
+};
 use sqlx::{migrate, sqlite::SqliteConnectOptions, SqlitePool};
 use tokio::net::TcpListener;
 
@@ -52,15 +56,9 @@ fn build_app(db: SqlitePool) -> Router {
     Router::new()
         .route("/", get(routes::index::render))
         .route("/favicon.ico", get(StatusCode::NOT_FOUND))
-        .route(
-            "/new",
-            get(routes::calendar::render_add).post(routes::calendar::handle_add),
-        )
+        .route("/new", post(routes::calendar::handle_new))
         .route("/:calendar", get(routes::calendar::render))
-        .route(
-            "/:calendar/add",
-            get(routes::events::render_add).post(routes::events::handle_add),
-        )
+        .route("/:calendar/add", post(routes::events::handle_add))
         .route(
             "/:calendar/subscription",
             get(routes::calendar::ical_subscription),
