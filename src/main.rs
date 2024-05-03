@@ -35,11 +35,11 @@ async fn main() {
     tracing::info!("Building app");
     let app = build_app(db);
 
+    tracing::info!("Listening on {address}");
     let listener = TcpListener::bind(&address)
         .await
-        .expect("could not listen to port 5173");
+        .expect("could not listen to address");
 
-    tracing::info!("Listening on {address}");
     axum::serve(listener, app.into_make_service())
         .await
         .expect("server crashed :(")

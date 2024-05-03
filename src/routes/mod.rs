@@ -25,7 +25,7 @@ fn layout(page: impl maud::Render) -> Markup {
                 meta name="viewport" content="width=device-width, initial-scale=1.0";
                 title { "schedule" }
                 style {
-                    (PreEscaped(include_str!("./styles_generated.css")))
+                    (PreEscaped(include_str!("styles_generated.css")))
                 }
             }
             body .bg-indigo-950 .text-indigo-50 .font-medium {

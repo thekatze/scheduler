@@ -1,0 +1,28 @@
+# fly.toml app configuration file generated for thekatzescheduler on 2024-05-03T13:46:25+02:00
+#
+# See https://fly.io/docs/reference/configuration/ for information about how to use this file.
+#
+
+app = 'thekatzescheduler'
+primary_region = 'ams'
+
+[build]
+
+[http_service]
+  internal_port = 8080
+  force_https = true
+  auto_stop_machines = true
+  auto_start_machines = true
+  min_machines_running = 0
+  processes = ['app']
+
+[[vm]]
+  size = 'shared-cpu-1x'
+
+[env]
+  SCHEDULE_ADDRESS='0.0.0.0:8080'
+  SCHEDULE_DB_FILE='/data/calendars.db'
+
+[mounts]
+  source="scheduler_data"
+  destination="/data"
