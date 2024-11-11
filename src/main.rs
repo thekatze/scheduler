@@ -2,7 +2,7 @@ use std::env;
 
 use axum::{
     http::StatusCode,
-    routing::{get, post},
+    routing::{delete, get, post},
     Router,
 };
 use sqlx::{migrate, sqlite::SqliteConnectOptions, SqlitePool};
@@ -63,5 +63,6 @@ fn build_app(db: SqlitePool) -> Router {
             "/:calendar/subscription",
             get(routes::calendar::ical_subscription),
         )
+        .route("/:calendar/:event", delete(routes::events::handle_delete))
         .with_state(context)
 }
