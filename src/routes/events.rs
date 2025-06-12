@@ -50,8 +50,7 @@ pub(crate) async fn handle_delete(
     Path(path): Path<DeletePath>,
     State(context): State<AppContext>,
 ) -> Result<impl IntoResponse, StatusCode> {
-    let calendar_id =
-        Uuid::try_parse(&path.calendar).map_err(|_| StatusCode::BAD_REQUEST)?;
+    let calendar_id = Uuid::try_parse(&path.calendar).map_err(|_| StatusCode::BAD_REQUEST)?;
     let event_id = Uuid::try_parse(&path.event).map_err(|_| StatusCode::BAD_REQUEST)?;
 
     query("DELETE FROM events where calendar_id = ?1 AND id = ?2")
@@ -61,5 +60,5 @@ pub(crate) async fn handle_delete(
         .await
         .map_err(|_| StatusCode::INTERNAL_SERVER_ERROR)?;
 
-    Ok(StatusCode::NO_CONTENT)
+    Ok(Redirect::to(&format!("/{}", &path.calendar)))
 }

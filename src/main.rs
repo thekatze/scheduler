@@ -2,7 +2,7 @@ use std::env;
 
 use axum::{
     http::StatusCode,
-    routing::{delete, get, post},
+    routing::{get, post},
     Router,
 };
 use sqlx::{migrate, sqlite::SqliteConnectOptions, SqlitePool};
@@ -35,7 +35,7 @@ async fn main() {
     tracing::info!("Building app");
     let app = build_app(db);
 
-    tracing::info!("Listening on {address}");
+    tracing::info!("Listening on http://{address}");
     let listener = TcpListener::bind(&address)
         .await
         .expect("could not listen to address");
@@ -63,6 +63,6 @@ fn build_app(db: SqlitePool) -> Router {
             "/:calendar/subscription",
             get(routes::calendar::ical_subscription),
         )
-        .route("/:calendar/:event", delete(routes::events::handle_delete))
+        .route("/:calendar/:event", post(routes::events::handle_delete))
         .with_state(context)
 }

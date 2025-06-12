@@ -13,6 +13,7 @@ pub(crate) struct Schedule {
 #[derive(sqlx::FromRow)]
 pub(crate) struct Event {
     pub id: sqlx::types::uuid::Uuid,
+    pub calendar_id: sqlx::types::uuid::Uuid,
     pub date: sqlx::types::chrono::NaiveDate,
     pub summary: String,
 }
@@ -37,8 +38,10 @@ impl maud::Render for Schedule {
 impl maud::Render for Event {
     fn render(&self) -> Markup {
         html!(
-            li .flex .gap-4 id=(format!("event-{}", self.id)) {
-                strong { (self.date.to_string()) } (self.summary)
+            li .items-center .justify-center .flex .gap-4 id=(format!("event-{}", self.id)) {
+                form action=(format!("{}/{}", self.calendar_id, self.id)) method="POST" {abbr .no-underline title="Delete this event" { button .w-5 .h-5 .font-black .text-xs .pb-1 .text-red-600 type="submit" { "x" } } }
+                strong { (self.date.to_string()) }
+                (self.summary)
             }
         )
     }
